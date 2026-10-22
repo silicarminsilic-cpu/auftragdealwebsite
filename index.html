@@ -1007,15 +1007,22 @@ $('#ben').innerHTML=BENEFITS.map(b=>`<div class="bn rv-in">${ic(b[0])}<h3>${b[1]
 $('#brn').innerHTML=BRANCHEN.map(b=>`<a class="bc rv-in" href="#registrieren">${ic(b[1])}<b>${b[0]}</b><span>${b[2]}</span></a>`).join('');
 $('#faqList').innerHTML=FAQ.map((f,i)=>`<details${i===0?' open':''}><summary>${f[0]}</summary><p>${f[1]}</p></details>`).join('');
 paint();
-function openLogin(msg){if(DASH_API){location.href=DASH_API+'/index.php?p=login';return;}openModal(`<h3>${T.loginH}</h3><p class="sub">${msg||T.loginIntro}</p>
+var _dashUp=null;
+function dashUp(){if(!DASH_API)return Promise.resolve(false);if(_dashUp)return _dashUp;
+ _dashUp=new Promise(function(res){var done=false,t=setTimeout(function(){if(!done){done=true;res(false);}},3000);
+  fetch(DASH_API+'/index.php?p=login',{mode:'no-cors',cache:'no-store'}).then(function(){if(!done){done=true;clearTimeout(t);res(true);}},function(){if(!done){done=true;clearTimeout(t);res(false);}});});
+ return _dashUp;}
+function openLogin(msg){if(DASH_API){dashUp().then(function(up){if(up)location.href=DASH_API+'/index.php?p=login';else openLogin2(msg);});return;}openLogin2(msg);}
+function openLogin2(msg){openModal(`<h3>${T.loginH}</h3><p class="sub">${msg||T.loginIntro}</p>
  <div style="display:grid;gap:12px;margin-top:6px"><p style="font-size:14.5px;color:var(--muted)">${T.loginText}</p>
  <button class="btn btn-primary btn-lg" type="button" id="lgReg">${T.loginBtn}</button></div>`);
  $('#lgReg').onclick=()=>{closeAll();go('registrieren');};}
 const W3K='b3d0fd46-14b2-4537-a1ec-d3acabc57236';
 /* Dashboard-Backend (nach Einrichtung eintragen, z.B. 'https://app.auftragdeal.ch'). Leer = nur E-Mail. */
-const DASH_API='';
+const DASH_API='https://app.auftragdeal.ch';
 function portalCta(mail){
- if(!DASH_API)return;var pane=document.querySelector('#rz .pane[data-p="4"] .done');if(!pane||pane.querySelector('#rPortal'))return;
+ if(!DASH_API)return;dashUp().then(function(up){if(up)portalCta2();});}
+function portalCta2(){var pane=document.querySelector('#rz .pane[data-p="4"] .done');if(!pane||pane.querySelector('#rPortal'))return;
  var L={de:['Jetzt Portal-Zugang erstellen','Gratis-Leads, Lead-Markt, CRM, Offerten und Rechnungen sofort nutzen. Bitte dieselbe E-Mail-Adresse verwenden.'],fr:['Créer maintenant votre accès au portail','Leads offerts, marché de leads, CRM, devis et factures. Utilisez la même adresse e-mail.'],it:['Crea ora il tuo accesso al portale','Lead in regalo, mercato dei lead, CRM, offerte e fatture. Usa lo stesso indirizzo e-mail.']}[SITE.lang]||[];
  var d=document.createElement('div');d.id='rPortal';d.style.cssText='margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--sky)';
  d.innerHTML='<p style="margin:0 0 10px;font-size:14.5px"></p><a class="btn btn-primary" target="_blank" rel="noopener"></a>';
